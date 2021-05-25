@@ -5,6 +5,7 @@
 
 library(readr)
 library(tidyverse)
+library(readxl)
 
 
 ccp_data_20210419 <- read_csv("F:/ISARIC files/original data/Ultra download/ccp_data_20210419.csv")
@@ -30,5 +31,19 @@ poss_covid_neg_excel <- possible_covid_neg %>%
   distinct()
 
 write_csv(poss_covid_neg_excel, "~/NGS Serology/Data/Updated severity score/Newest Severity SCore/poss_covid_neg_excel_20210525.csv")
+
+#Further check for those with corna_mbcat = no and then no other SARS-CoV-2 results rather than negative results
+
+
+covid_neg_manual_list_elen_20210525 <- read_excel("~/NGS Serology/Data/Updated severity score/Newest Severity SCore/covid_neg_manual_list_elen_20210525.xlsx")
+
+further_check_covid <- oneline_20210419 %>%
+  select('subjid', 'corna_mbcat', 'corna_mbcaty') %>% 
+  filter(corna_mbcat == "NO") %>% 
+  select(subjid) %>%
+  left_join(covid_neg_manual_list_elen_20210525, by = "subjid")
+
+#Final list after manual checking in Excel - covid_neg_manual_list_elen_20210525_v2 
+
 
 
