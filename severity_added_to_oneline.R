@@ -2,6 +2,10 @@
 #by Elen Vink 
 #20210525
 
+library(readr)
+library(tidyverse)
+library(readxl)
+
 #Import oneline data
 
 oneline_data <- read_csv("F:/ISARIC files/original data/Ultra download/oneline_20210419.csv")
@@ -13,7 +17,7 @@ oneline_data$symptom_onset_DoAdmission <- (as.Date(as.character(oneline_data$ces
 oneline_data$outcome_DoSymptoms <- (as.Date(as.character(oneline_data$dsstdtc), format="%d/%m/%Y")) - as.Date(as.character(oneline_data$cestdat), format="%d/%m/%Y")
 oneline_data$enrolment_DoSymptoms <- (as.Date(as.character(oneline_data$dsstdat), format="%d/%m/%Y")) - as.Date(as.character(oneline_data$cestdat), format="%d/%m/%Y")
 oneline_data$"28d_alive_unknown" <- (((oneline$dsterm == "Transfer to other facility" | oneline$dsterm == "Unknown") & (oneline$outcome_DoAdmission <28))|((oneline$dsterm == "Transfer to other facility" | oneline$dsterm == "Unknown") & (oneline$outcome_DoAdmission >27) & (oneline$symptom_onset_DoAdmission >7) & (oneline$outcome_DoSymptoms <28)))
-oneline_data$enrolment_DoSymptoms <- (as.Date(as.character(oneline_data$dsstdat), format="%d/%m/%Y")) - as.Date(as.character(oneline_data$cestdat), format="%d/%m/%Y")
+oneline_data$enrolment_DoAdmission <- (as.Date(as.character(oneline_data$dsstdat), format="%d/%m/%Y")) - as.Date(as.character(oneline_data$hostdat), format="%d/%m/%Y")
 
 #Severity score automation
 
