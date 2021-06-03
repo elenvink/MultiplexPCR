@@ -14,6 +14,8 @@ library(readxl)
 lims_data_URT <- read_csv("~/Ultra/lims_data_20210419_URT.csv")
 oneline_severity <- read_csv("~/Ultra/oneline_severity_someupdatedfio2_20210527.csv")
 covid_neg_list <- read_excel("~/NGS Serology/Data/Updated severity score/Newest Severity SCore/covid_neg_manual_list_elen_20210525_v2.xlsx")
+MicroScan_list_d1.3.conv <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan_list_d1.3.conv.csv")
+MicroScan_list_d1.3.conv.day9 <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan_list_d1.3.conv.day9.csv")
 
 #Add covid status and severity score to LIMS data
 
@@ -26,14 +28,21 @@ lims_data <-  lims_data_URT %>%
 lims_data <-  lims_data %>% 
   left_join(covid_neg_list, by = c('Patient_ID' = 'subjid'))
 
+lims_data_distinct <- lims_data %>% 
+  select('Patient_ID') %>% 
+  distinct()
+
 #Add column for whether throat swab available - TRUE/FALSE (FALSE means nose or unknown site)
 
 lims_data$throat_swab <- str_detect(lims_data$Sample_Type, '(?i)throat') | str_detect(lims_data$Sample_Type, '(?i)thoat') 
 
 #Add column for those on full MicroScan list - d1/3&conv plus day1/3&9/conv
 
+lims_data <- lims_data %>% 
+  left_join(MicroScan_list_d1.3.conv, by = c('Patient_ID' = 'joining_subjid'))
 
-
+lims_data <- lims_data %>% 
+  left_join(MicroScan_list_d1.3.conv.day9, by = c('Patient_ID' = 'joining_subjid'))
 
 
 #Exclusion criteria
@@ -77,35 +86,50 @@ lims_data_filtered_4 <- lims_data_filtered_3exclude_unkwn_nosocomial %>%
 lims_data_filtered_4 <- subset(lims_data_filtered_4, !((Timepoint == "Unknown") & (sample_collection_DoEnrolment >4)))
 lims_data_filtered_4 <- subset(lims_data_filtered_4, !((Timepoint == "Not Recorded") & (sample_collection_DoEnrolment >4)))  
   
-#?Include throat swabs only ?Prioritise throat swabs
-##Add column for whether throat available
-lims_data_filtered_5 <- lims_data_filtered_4 %>% 
-  filter(str_detect(Sample_Type, '(?i)throat') | str_detect(Sample_Type, '(?i)thoat') | str_detect(Sample_Type, 'Respiratory'))
 
 #How many patients included at this point?
 
-PCR_patient_list_1 <- lims_data_filtered_5 %>% 
+PCR_patient_list_1 <- lims_data_filtered_4 %>% 
   select('Patient_ID') %>% 
   distinct()
 
 
+#Select earliest samples for each patient
+priority_lims_list <- lims_data_filtered_4 %>% 
+  select(samplecode, Patient_ID, Kit_ID, Timepoint, severity, throat_swab, sample_collection_DoSymptoms, sample_collection_DoEnrolment, Microscan_list_d1.3.conv, Microscan_list_d1.3.conv.day9) %>%
+  arrange(Kit_ID, desc(throat_swab)) %>% 
+  distinct(Kit_ID, .keep_all = TRUE) %>% 
+  arrange(Patient_ID, desc(throat_swab)) %>% 
+  distinct(Patient_ID, Timepoint, .keep_all = TRUE) %>% 
+  arrange(Patient_ID, sample_collection_DoEnrolment) %>% 
+  distinct(Patient_ID, .keep_all = TRUE)
+
+#Prioritise Microscan & earliest samples from symptom onset
+
+priority_lims_list_top1000 <- priority_lims_list %>%
+  filter(Microscan_list_d1.3.conv == TRUE | Microscan_list_d1.3.conv.day9 == TRUE | sample_collection_DoSymptoms < 15)
+
+priority_lims_list_top500 <- priority_lims_list %>%
+  filter(Microscan_list_d1.3.conv == TRUE | Microscan_list_d1.3.conv.day9 == TRUE | sample_collection_DoSymptoms <6)
+
+#Create Glasgow lists
+
+priority_lims_list_all_from_Glasgow <- priority_lims_list %>% 
+  filter(str_detect(Kit_ID, 'CVR')) %>% 
+  select(c(1:4))
+
+priority_lims_list_top1000_from_Glasgow <- priority_lims_list_top1000 %>% 
+  filter(str_detect(Kit_ID, 'CVR')) %>% 
+  select(c(1:4))
+
+priority_lims_list_top500_from_Glasgow <- priority_lims_list_top500 %>% 
+  filter(str_detect(Kit_ID, 'CVR')) %>% 
+  select(c(1:4))
+
+write_csv(priority_lims_list_all_from_Glasgow, "~/NGS Serology/Data/Sample Lists/All_URT_lims_list__from_Glasgow.csv")
+
+write_csv(priority_lims_list_top1000_from_Glasgow, "~/NGS Serology/Data/Sample Lists/priority_URT_lims_list_top1000_from_Glasgow.csv")
+
+write_csv(priority_lims_list_top500_from_Glasgow, "~/NGS Serology/Data/Sample Lists/priority_URT_lims_list_top500_from_Glasgow.csv")
 
 
-
-#Compare to PhipSeq plasma list
-
-PhipSeq_plasma_lims_list_20210525_v2 <- read_csv("~/NGS Serology/Data/Updated severity score/Newest Severity SCore/PhipSeq_plasma_lims_list_20210525_v2.csv")
-
-URT_vs_PhipSeq <- PCR_patient_list_1 %>% 
-  full_join(PhipSeq_plasma_lims_list_20210525_v2, by = "Patient_ID")
-
-##TODO
-
-
-
-
-
-#Prioritise - those with severity score and also PhipSeq analysis, earliest samples
-
-lims_data_filtered_2 <- lims_data_filtered %>% 
-  filter(is.na(severity) == FALSE)
