@@ -11,8 +11,8 @@ library(readxl)
 
 #Import data
 
-lims_data_URT <- read_csv("F:/ISARIC files/original data/Ultra download/lims_data_20210419_URT.csv")
-oneline_severity <- read_csv("F:/ISARIC files/original data/Ultra download/oneline_severity_20210525.csv")
+lims_data_URT <- read_csv("~/Ultra/lims_data_20210419_URT.csv")
+oneline_severity <- read_csv("~/Ultra/oneline_severity_someupdatedfio2_20210527.csv")
 covid_neg_list <- read_excel("~/NGS Serology/Data/Updated severity score/Newest Severity SCore/covid_neg_manual_list_elen_20210525_v2.xlsx")
 
 #Add covid status and severity score to LIMS data
@@ -25,6 +25,15 @@ lims_data <-  lims_data_URT %>%
 
 lims_data <-  lims_data %>% 
   left_join(covid_neg_list, by = c('Patient_ID' = 'subjid'))
+
+#Add column for whether throat swab available - TRUE/FALSE (FALSE means nose or unknown site)
+
+lims_data$throat_swab <- str_detect(lims_data$Sample_Type, '(?i)throat') | str_detect(lims_data$Sample_Type, '(?i)thoat') 
+
+#Add column for those on full MicroScan list - d1/3&conv plus day1/3&9/conv
+
+
+
 
 
 #Exclusion criteria
@@ -52,7 +61,7 @@ lims_data_filtered_2 <- lims_data_filtered %>%
 
 #Where symptom onset = NA further exclude nosocomial by filtering by collection date DoAdmission <7 - need to decide whether to include unknowns??
 
-#lims_data_filtered_3inc_unkwn_nosocomial <- lims_data_filtered_2 %>% 
+lims_data_filtered_3inc_unkwn_nosocomial <- lims_data_filtered_2 %>% 
   filter(is.na(symptom_onset_DoAdmission) == FALSE | sample_collection_DoAdmission < 7 | is.na(sample_collection_DoAdmission) == TRUE)
 
 lims_data_filtered_3exclude_unkwn_nosocomial <- lims_data_filtered_2 %>% 
@@ -69,7 +78,7 @@ lims_data_filtered_4 <- subset(lims_data_filtered_4, !((Timepoint == "Unknown") 
 lims_data_filtered_4 <- subset(lims_data_filtered_4, !((Timepoint == "Not Recorded") & (sample_collection_DoEnrolment >4)))  
   
 #?Include throat swabs only ?Prioritise throat swabs
-
+##Add column for whether throat available
 lims_data_filtered_5 <- lims_data_filtered_4 %>% 
   filter(str_detect(Sample_Type, '(?i)throat') | str_detect(Sample_Type, '(?i)thoat') | str_detect(Sample_Type, 'Respiratory'))
 
