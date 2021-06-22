@@ -14,8 +14,8 @@ library(readxl)
 lims_data_URT <- read_csv("~/Ultra/lims_data_20210419_URT.csv")
 oneline_severity <- read_csv("~/Ultra/oneline_severity_someupdatedfio2_20210527.csv")
 covid_neg_list <- read_excel("~/NGS Serology/Data/Updated severity score/Newest Severity SCore/covid_neg_manual_list_elen_20210525_v2.xlsx")
-MicroScan_list_d1.3.conv <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan_list_d1.3.conv.csv")
-MicroScan_list_d1.3.conv.day9 <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan_list_d1.3.conv.day9.csv")
+MicroScan_list_d1.3.conv <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan_list_d1.3.conv_20210622.csv")
+MicroScan_list_d1.3.conv.day9 <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan_list_d1.3.conv.day9_20210622.csv")
 
 #Add covid status and severity score to LIMS data
 
@@ -68,10 +68,7 @@ lims_data_filtered$sample_collection_DoEnrolment <- replace(lims_data_filtered$s
 lims_data_filtered_2 <- lims_data_filtered %>% 
   filter(symptom_onset_DoAdmission < 7 | is.na(symptom_onset_DoAdmission == TRUE))
 
-#Where symptom onset = NA further exclude nosocomial by filtering by collection date DoAdmission <7 - need to decide whether to include unknowns??
-
-lims_data_filtered_3inc_unkwn_nosocomial <- lims_data_filtered_2 %>% 
-  filter(is.na(symptom_onset_DoAdmission) == FALSE | sample_collection_DoAdmission < 7 | is.na(sample_collection_DoAdmission) == TRUE)
+#Where symptom onset = NA further exclude nosocomial by filtering by collection date DoAdmission <7 
 
 lims_data_filtered_3exclude_unkwn_nosocomial <- lims_data_filtered_2 %>% 
   filter(is.na(symptom_onset_DoAdmission) == FALSE | sample_collection_DoAdmission < 7 )
@@ -131,5 +128,25 @@ write_csv(priority_lims_list_all_from_Glasgow, "~/NGS Serology/Data/Sample Lists
 write_csv(priority_lims_list_top1000_from_Glasgow, "~/NGS Serology/Data/Sample Lists/priority_URT_lims_list_top1000_from_Glasgow.csv")
 
 write_csv(priority_lims_list_top500_from_Glasgow, "~/NGS Serology/Data/Sample Lists/priority_URT_lims_list_top500_from_Glasgow.csv")
+
+#Create Liverpool Lists
+
+priority_lims_list_all_from_Liverpool <- priority_lims_list %>% 
+  filter(!str_detect(Kit_ID, 'CVR')) %>% 
+  select(c(1:4))
+
+priority_lims_list_top1000_from_Liverpool <- priority_lims_list_top1000 %>% 
+  filter(!str_detect(Kit_ID, 'CVR')) %>% 
+  select(c(1:4))
+
+priority_lims_list_top500_from_Liverpool <- priority_lims_list_top500 %>% 
+  filter(!str_detect(Kit_ID, 'CVR')) %>% 
+  select(c(1:4))
+
+write_csv(priority_lims_list_all_from_Liverpool, "~/NGS Serology/Data/Sample Lists/All_URT_lims_list__from_Liverpool.csv")
+
+write_csv(priority_lims_list_top1000_from_Liverpool, "~/NGS Serology/Data/Sample Lists/priority_URT_lims_list_top1000_from_Liverpool.csv")
+
+write_csv(priority_lims_list_top500_from_Liverpool, "~/NGS Serology/Data/Sample Lists/priority_URT_lims_list_top500_from_Liverpool.csv")
 
 
