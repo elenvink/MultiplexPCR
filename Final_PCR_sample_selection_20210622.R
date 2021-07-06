@@ -11,11 +11,11 @@ library(readxl)
 
 #Import data
 
-lims_data_URT <- read_csv("~/Ultra/lims_data_20210419_URT.csv")
+lims_data_URT <- read_csv("~/Ultra/lims_data_20210614_URT.csv")
 oneline_severity <- read_csv("~/Ultra/oneline_severity_someupdatedfio2_20210527.csv")
 covid_neg_list <- read_excel("~/NGS Serology/Data/Updated severity score/Newest Severity SCore/covid_neg_manual_list_elen_20210525_v2.xlsx")
-MicroScan_list_d1.3.conv <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan_list_d1.3.conv_20210622.csv")
-MicroScan_list_d1.3.conv.day9 <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan_list_d1.3.conv.day9_20210622.csv")
+MicroScan_list_d1.3.conv <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan/MicroScan_list_d1.3.conv_20210622.csv")
+MicroScan_list_d1.3.conv.day9 <- read_csv("~/NGS Serology/Data/Sample Lists/MicroScan/MicroScan_list_d1.3.conv.day9_20210622.csv")
 
 #Add covid status and severity score to LIMS data
 
@@ -143,10 +143,10 @@ priority_lims_list_top500_from_Liverpool <- priority_lims_list_top500 %>%
   filter(!str_detect(Kit_ID, 'CVR')) %>% 
   select(c(1:4))
 
-write_csv(priority_lims_list_all_from_Liverpool, "~/NGS Serology/Data/Sample Lists/All_URT_lims_list__from_Liverpool.csv")
+write_csv(priority_lims_list_all_from_Liverpool, "~/NGS Serology/Data/Sample Lists/ISARIC URT Lists/All_URT_lims_list__from_Liverpool_v2.csv")
 
-write_csv(priority_lims_list_top1000_from_Liverpool, "~/NGS Serology/Data/Sample Lists/priority_URT_lims_list_top1000_from_Liverpool.csv")
+write_csv(priority_lims_list_top1000_from_Liverpool, "~/NGS Serology/Data/Sample Lists/ISARIC URT Lists/priority_URT_lims_list_top1000_from_Liverpool_v2.csv")
 
-write_csv(priority_lims_list_top500_from_Liverpool, "~/NGS Serology/Data/Sample Lists/priority_URT_lims_list_top500_from_Liverpool.csv")
+write_csv(priority_lims_list_top500_from_Liverpool, "~/NGS Serology/Data/Sample Lists/ISARIC URT Lists/priority_URT_lims_list_top500_from_Liverpool_v2.csv")
 
 
