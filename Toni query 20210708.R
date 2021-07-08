@@ -67,7 +67,6 @@ lims_data_filtered_2 <- lims_data_filtered %>%
 #Export to Excel to sort sample type labelling
 
 write_csv(lims_data_filtered_2, '~/Viral Coinfection/Sample Lists/Toni query/URT_Day1_Samples_20210708.csv')
-
 #Import back
 
 lims_data_filtered_2_update <- read_excel('~/Viral Coinfection/Sample Lists/Toni query/URT_Day1_Samples_20210708ev.xlsx') %>% 
@@ -82,16 +81,34 @@ lims_data_filtered_3 <- lims_data_filtered_2_update %>%
 
 Sample_Type <- as.data.frame(count(lims_data_filtered_3, vars = Sample_Type_Updated))
 
+##Samples sorted by Day from symptom onset
 
-###Export to Excel for final tidy up!
+lims_data_DoS <- lims_data %>% 
+  select(Kit_ID, sample_collection_DoSymptoms) %>% 
+  distinct()
+
+lims_data_filtered_4 <- lims_data_filtered_2_update %>% 
+  left_join(lims_data_DoS, by = 'Kit_ID') %>% 
+  select(Patient_ID, Timepoint, sample_collection_DoSymptoms) %>% 
+  distinct()
+
+DOS <- as.data.frame(count(lims_data_filtered_4, vars = sample_collection_DoSymptoms))
+  
+##Samples sorted by type and DoS
+
+lims_data_filtered_5 <- lims_data_filtered_2_update %>% 
+  left_join(lims_data_DoS, by = 'Kit_ID') %>% 
+  select(Patient_ID, Timepoint, Sample_Type_Updated, sample_collection_DoSymptoms) %>% 
+  distinct()
+
+Sample_Type_DoS <- as.data.frame(count(lims_data_filtered_5, sample_collection_DoSymptoms, Sample_Type_Updated))
+
+#Export results
 
 write_csv(Sample_Type, '~/Viral Coinfection/Sample Lists/Toni query/URT_Day1_Sample_Type_20210708.csv')
 
-##Samples sorted by Day from symptom onset
+write_csv(DOS, '~/Viral Coinfection/Sample Lists/Toni query/URT_Day1samples_Day_of_symptoms_20210708.csv')
 
-lims_data_filtered_4 <- lims_data_filtered_2_update %>% 
-  
-  
-  ##left join DoS and then count
-  select(Patient_ID, Kit_ID, Timepoint, Sample_Type, sample_collection_DoSymptoms) %>% 
-  distinct()
+write_csv(Sample_Type_DoS, '~/Viral Coinfection/Sample Lists/Toni query/URT_Day1_Sample_Type_and_DoS_20210708.csv')
+
+#Have not excluded Covid Negative...
