@@ -128,7 +128,7 @@ summary(URTsamples_data_update$calc_age)
 Gender_table_1 <- table(URTsamples_data_update$sex)
 prop.table(Gender_table_1)
 
-write_csv(URTsamples_data_update, "~/Viral Coinfection/ESWI Abstract/URTsamples_data_update_20210929.csv")
+#write_csv(URTsamples_data_update, "~/Viral Coinfection/ESWI Abstract/URTsamples_data_update_20210929.csv")
 
 PCR_run_id_data <- PCR_run_id %>% 
   left_join(URTsamples_data_update, by = 'Patient ID')
@@ -144,6 +144,8 @@ prop.table(severity_table_1)
 severity_table <- table(PCR_run_id_data_severity$severity)
 severity_table
 prop.table(severity_table)
+
+
 
 
 PCR_run_id_data_age <- PCR_run_id_data %>% 
@@ -180,6 +182,8 @@ URTsamples_data_update$sample_collection_DoSymptoms_number <- numextract(URTsamp
 
 URTsamples_data_update$sample_collection_DoSymptoms_number <- as.numeric(URTsamples_data_update$sample_collection_DoSymptoms_number)
 
+summary(URTsamples_data_update$sample_collection_DoSymptoms_number)
+
 # Sample day of admission
 
 URTsamples_data_update$sample_collection_DoAdmission <- (as.Date(as.character(URTsamples_data_update$'Date Taken.x'), format="%d/%m/%Y")) - as.Date(as.character(URTsamples_data_update$hostdat), format="%d/%m/%Y")
@@ -203,11 +207,67 @@ summary(URTsamples_data_update$sample_collection_DoAdmission_number)
 URTsamples_data_update_2 <- URTsamples_data_update %>% 
   select(`Patient ID`, 'sample_collection_DoAdmission_number')
 
-#Number of people in cohort needing mechanical ventilation
+#Number of people in cohort needing mechanical ventilation vs positive patients
 
 imv_table <- table(URTsamples_data_update$any_invasive)
+imv_table
 prop.table(imv_table)
+
+imv_pos_table <- table(PCR_run_id_data$any_invasive)
+imv_pos_table
+prop.table(imv_pos_table)
+
+#Number of people in cohort dying vs positive patients
 
 death_table <- table(URTsamples_data_update$dsterm)
 death_table
 prop.table(death_table)
+
+death_pos_table <- table(PCR_run_id_data$dsterm)
+death_pos_table
+prop.table(death_pos_table)
+
+#Length of stay neg vs pos for those alive
+
+#add column of positive or negative to full cohort
+
+PCR_run_id_pos_result <- PCR_run_id %>% 
+  select(2,4,6)
+
+PCR_run_id_pos_result$PCR_result <- 'Pos'
+
+URTsamples_data_update_posneg <- URTsamples_data_update %>% 
+  left_join(PCR_run_id_pos_result, by = 'Patient ID')
+
+#filter by discharged alive
+
+URTsamples_data_update_posneg <- URTsamples_data_update_posneg %>% 
+  filter(dsterm == 'Discharged alive')
+
+#calculate LOS
+
+URTsamples_data_update_posneg$LoS <-  (as.Date(as.character(URTsamples_data_update_posneg$dsstdtc), format="%d/%m/%Y")) - as.Date(as.character(URTsamples_data_update_posneg$dsstdat), format="%d/%m/%Y")
+
+####Replace negative values with NA as incorrect
+
+URTsamples_data_update_posneg$LoS <- replace(URTsamples_data_update_posneg$LoS, which(URTsamples_data_update_posneg$LoS < 0), NA)
+
+numextract <- function(string){ 
+  str_extract(string, "\\-*\\d+\\.*\\d*")
+} 
+
+URTsamples_data_update_posneg$LoS_number <- numextract(URTsamples_data_update_posneg$LoS)
+
+URTsamples_data_update_posneg$LoS_number <- as.numeric(URTsamples_data_update_posneg$LoS_number)
+
+#Divide into pos neg and compare average LOS
+
+URTsamples_data_update_pos <- URTsamples_data_update_posneg %>% 
+  filter(PCR_result == 'Pos')
+
+URTsamples_data_update_neg <- URTsamples_data_update_posneg %>% 
+  filter(is.na(PCR_result == TRUE))
+
+summary(URTsamples_data_update_pos$LoS_number)
+
+summary(URTsamples_data_update_neg$LoS_number)
