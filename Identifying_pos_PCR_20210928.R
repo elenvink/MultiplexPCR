@@ -8,7 +8,7 @@ library(readxl)
 
 #Import data
 
-URTsamples <- read_excel("~/Viral Coinfection/ESWI Abstract/Scottish URT Extraction PCR 20210928.xlsx") %>% 
+URTsamples <- read_excel("~/Viral Coinfection/Sample Lists/Sample Release/Master_list_extraction_PCR.xlsx") %>% 
   select(1,6,10)
 
 Sept7 <- read_excel("~/Viral Coinfection/PCR Results/20210907allRUTs_data_update.xls") %>% 
@@ -76,11 +76,51 @@ Sept27 <- read_excel("~/Viral Coinfection/PCR Results/20210927_allRUTs_data.xls"
 
 Sept27$PCR_date <- 'Sept27'
 
+Oct20 <- read_excel("~/Viral Coinfection/PCR Results/20211020allRUTs_data.xls") %>% 
+  select(2,3,4,7)
+
+Oct20$PCR_date <- 'Oct20'
+
+Oct21 <- read_excel("~/Viral Coinfection/PCR Results/20211021allRUTs_data.xls") %>% 
+  select(2,3,4,7)
+
+Oct21$PCR_date <- 'Oct21'
+
+Oct26 <- read_excel("~/Viral Coinfection/PCR Results/20211026allRUTs_data.xls") %>% 
+  select(2,3,4,7)
+
+Oct26$PCR_date <- 'Oct26'
+
+Oct27am <- read_excel("~/Viral Coinfection/PCR Results/20211027_am_allRUTs_data.xls") %>% 
+  select(2,3,4,7)
+
+Oct27am$PCR_date <- 'Oct27am'
+
+Oct27pm <- read_excel("~/Viral Coinfection/PCR Results/20211027_pm_allRUTs_data.xls") %>% 
+  select(2,3,4,7)
+
+Oct27pm$PCR_date <- 'Oct27pm'
+
+Oct28 <- read_excel("~/Viral Coinfection/PCR Results/20211028_allRUTs_data.xls") %>% 
+  select(2,3,4,7)
+
+Oct28$PCR_date <- 'Oct28'
+
+Oct29am <- read_excel("~/Viral Coinfection/PCR Results/20211029_allRUTs_data.xls") %>% 
+  select(2,3,4,7)
+
+Oct29am$PCR_date <- 'Oct29am'
+
+Oct29pm <- read_excel("~/Viral Coinfection/PCR Results/20211029_pm_allRUTs_data.xls") %>% 
+  select(2,3,4,7)
+
+Oct29pm$PCR_date <- 'Oct29pm'
+
 
 #Combine datasheets
 
-PCR_run <- rbind(Sept7, Sept8, Sept9am, Sept9pm, Sept10am, Sept10pm, Sept14am, Sept14pm, Sept16, Sept17, Sept22am, Sept22pm, Sept27)
-
+PCR_run <- rbind(Sept7, Sept8, Sept9am, Sept9pm, Sept10am, Sept10pm, Sept14am, Sept14pm, Sept16, Sept17, Sept22am, Sept22pm, Sept27, Oct20 , Oct21 , Oct26, Oct27am, Oct27pm , Oct28, Oct29am, Oct29pm)
+                 
 names(PCR_run)[4] <- 'CT'
 
 #Filter for positive sample results
@@ -112,6 +152,8 @@ PCR_run$`Sample Name` <- as.numeric(PCR_run$`Sample Name`)
 
 PCR_run_id <- PCR_run %>% 
   left_join(URTsamples, by = c('Sample Name' = 'Sample Barcode'))
+
+PCR_run_id <- PCR_run_id[!is.na(PCR_run_id$`Patient ID`),]
 
 #PCR_run <- PCR_run %>% 
   #sort(as.numeric('CT', FALSE))
