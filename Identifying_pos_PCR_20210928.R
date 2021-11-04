@@ -6,6 +6,7 @@ library(readr)
 library(tidyverse)
 library(readxl)
 
+
 #Import data
 
 URTsamples <- read_excel("~/Viral Coinfection/Sample Lists/Sample Release/Master_list_extraction_PCR.xlsx") %>% 
@@ -160,10 +161,12 @@ PCR_run_id <- PCR_run_id[!is.na(PCR_run_id$`Patient ID`),]
 
 #Adding oneline data
 
-URTsamples_data_updated <- read_csv("~/Viral Coinfection/ESWI Abstract/URTsamples_data_20210928_update.csv") 
+URTsamples_data_updated <- read_csv("~/Viral Coinfection/ESWI Abstract/URTsamples_data_update_20210929.csv") 
 
-URTsamples_data_update <- URTsamples %>% 
-  left_join(URTsamples_data_updated, by = 'Patient ID')
+URTsamples_data_update <- URTsamples_data_updated %>% 
+  left_join(URTsamples, by = 'Patient ID')
+
+#Baseline characteristics
 
 summary(URTsamples_data_update$calc_age)
 
@@ -171,6 +174,14 @@ Gender_table_1 <- table(URTsamples_data_update$sex)
 prop.table(Gender_table_1)
 
 #write_csv(URTsamples_data_update, "~/Viral Coinfection/ESWI Abstract/URTsamples_data_update_20210929.csv")
+
+#Baseline charactersitics table
+
+
+
+
+
+
 
 PCR_run_id_data <- PCR_run_id %>% 
   left_join(URTsamples_data_update, by = 'Patient ID')
@@ -276,7 +287,11 @@ prop.table(death_pos_table)
 PCR_run_id_pos_result <- PCR_run_id %>% 
   select(2,4,6)
 
-PCR_run_id_pos_result$PCR_result <- 'Pos'
+
+PCR_run_id_pos_result$PCR_result <- 'Co-infection'
+
+PCR_run_id_pos_result <- PCR_run_id_pos_result %>% 
+  select(3,4)
 
 URTsamples_data_update_posneg <- URTsamples_data_update %>% 
   left_join(PCR_run_id_pos_result, by = 'Patient ID')
@@ -305,11 +320,173 @@ URTsamples_data_update_posneg$LoS_number <- as.numeric(URTsamples_data_update_po
 #Divide into pos neg and compare average LOS
 
 URTsamples_data_update_pos <- URTsamples_data_update_posneg %>% 
-  filter(PCR_result == 'Pos')
+  filter(PCR_result == 'Co-infection')
 
 URTsamples_data_update_neg <- URTsamples_data_update_posneg %>% 
   filter(is.na(PCR_result == TRUE))
 
+URTsamples_data_update_posneg$PCR_result <- URTsamples_data_update_posneg$PCR_result %>% 
+  replace_na('COVID-19')
+
 summary(URTsamples_data_update_pos$LoS_number)
 
 summary(URTsamples_data_update_neg$LoS_number)
+
+
+
+#Number of immunosuppressed patients in cohort - my list
+
+URTsamples_data_update <- URTsamples_data_update %>% 
+  left_join(Immsupp_med_20210730, by = c('Patient ID' = 'updated_patient_id'))
+
+immsupp_table_cohort <- table(URTsamples_data_update$immunosupp_med_updated)
+immsupp_table_cohort
+prop.table(immsupp_table_cohort)
+
+#Number of immunosuppressed patients in cohort - Matt Thorpe
+
+immsupp_MT <- read_csv("~/ISARIC 4C/Immunocompromised_Matt_Thorpe.csv") %>% 
+  select(1,3)
+
+URTsamples_data_update <- URTsamples_data_update %>% 
+  left_join(immsupp_MT, by = c('Patient ID' = 'subjid'))
+
+immsupp_MT_table_cohort <- table(URTsamples_data_update$immunocompromise_reason)
+immsupp_MT_table_cohort
+prop.table(immsupp_MT_table_cohort)
+
+#Comorbiditie numbers
+
+comorb_list <- read_csv("~/NGS Serology/Data/Updated severity score/Newest Severity SCore/oneline_comorb_list_20210611.csv")
+
+URTsamples_data_update <- URTsamples_data_update %>% 
+  left_join(comorb_list, by = c('Patient ID' = 'subjid'))
+
+comorb_number_table_cohort <- table(URTsamples_data_update$comorb_number)
+comorb_number_table_cohort
+prop.table(comorb_number_table_cohort)
+
+#proportion of different viruses
+
+PCR_run_results <- PCR_run_id %>% 
+  select(2,4,6)
+
+URTsamples_data_update_results <- URTsamples_data_update %>% 
+  left_join(PCR_run_results, by = 'Patient ID')
+
+URTsamples_data_update_results$`Target Name` <- URTsamples_data_update_results$`Target Name` %>%
+  replace_na('Negative')
+
+PCR_result_table <- table(URTsamples_data_update_results$`Target Name`)
+PCR_result_table
+prop.table(PCR_result_table)
+
+ggplot(data = PCR_run_id, mapping = aes(x = 'Target Name')) +
+  geom_bar() - failed
+
+# CT values
+
+PCR_run_id$CT <- as.numeric(PCR_run_id$CT)
+
+summary(PCR_run_id$CT)
+
+CT_boxplot <- ggplot(data = PCR_run_id, mapping = aes(y = CT))+
+  geom_boxplot(colour = "midnightblue", fill = "deepskyblue4") +
+  ylim(20,40) +
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size = rel(1.5)),
+        axis.title = element_text(size = rel(1.5)),
+        title = element_text(colour = "midnightblue")) +
+  labs(title = "CT Values")
+
+ggsave("CT_boxplot.png")
+
+#Comparing pos vs negative cohort
+
+summary(URTsamples_data_update_pos$calc_age)
+
+summary(URTsamples_data_update_neg$calc_age)
+
+Gender_table_pos <- table(URTsamples_data_update_pos$sex)
+prop.table(Gender_table_pos)
+
+Gender_table_neg <- table(URTsamples_data_update_neg$sex)
+prop.table(Gender_table_neg)
+
+comorb_table_pos <- table(URTsamples_data_update_pos$comorb_number)
+prop.table(comorb_table_pos)
+
+comorb_table_neg <- table(URTsamples_data_update_neg$comorb_number)
+prop.table(comorb_table_neg)
+
+severity_table_pos <- table(URTsamples_data_update_pos$severity)
+severity_table_pos
+prop.table(severity_table_pos)
+
+severity_table_neg <- table(URTsamples_data_update_neg$severity)
+severity_table_neg
+prop.table(severity_table_neg)
+
+death_table_pos <- table(URTsamples_data_update_pos$dsterm)
+death_table_pos
+prop.table(death_table_pos)
+
+death_pos_table_neg <- table(URTsamples_data_update_neg$dsterm)
+death_pos_table_neg
+prop.table(death_pos_table_neg)
+
+#Compare Age pos/neg
+
+Age_boxplot_posneg <- ggplot(data = URTsamples_data_update_posneg, mapping = aes(x = PCR_result,  y = calc_age))+
+  geom_boxplot(colour = "midnightblue", fill = "deepskyblue4") +
+  ylim(0,100) +
+  theme(axis.text = element_text(size = rel(1)),
+        axis.title = element_text(size = rel(1)),
+        title = element_text(colour = "midnightblue")) +
+  labs(title = "Age", x= "Infection Status", y = "Age (years)")
+
+Age_boxplot_posneg
+
+ggsave("Age_boxplot_posneg.png")
+
+#Compare sex pos/neg
+
+Sex_barplot_posneg <- ggplot(data = URTsamples_data_update_posneg, mapping = aes(x = PCR_result,fill = sex))+
+  geom_bar(position = "fill")+
+  theme(title = element_text(colour = "midnightblue")) +
+  labs(title = "Sex", x= "Infection Status", y = "Percentage") +
+  scale_fill_manual("Sex", values = c("Female" = "deepskyblue3", "Male" = "deepskyblue4")) +
+  scale_y_continuous(labels = scales::percent)
+
+Sex_barplot_posneg
+
+ggsave("Sex_barplot_posneg.png")
+
+#Compare comorb po/neg
+
+
+comorb_barplot_posneg <- ggplot(data = URTsamples_data_update_posneg, mapping = aes(x = PCR_result,fill = comorb_number))+
+  geom_bar(position = "fill") +
+  theme(title = element_text(colour = "midnightblue")) +
+  labs(title = "Comorbidities", x= "Infection Status", y = "Percentage") +
+  scale_fill_manual("Comorbidities", values = c("0" = "deepskyblue1", "1" = "deepskyblue3", "2+" = "deepskyblue4"))+
+  scale_y_continuous(labels = scales::percent)
+
+comorb_barplot_posneg
+
+ggsave("comorb_barplot_posneg.png")
+
+#Compare severity pos/neg
+
+severity_barplot_posneg <- ggplot(data = URTsamples_data_update_posneg, mapping = aes(x = PCR_result,fill = severity))+
+  geom_bar(position = "fill") +
+  theme(title = element_text(colour = "midnightblue"),
+        axis.text.x = element_text(angle = 30, hjust = 1)) +
+  labs(title = "Disease Severity", x= "Infection Status", y = "Percentage") +
+  scale_y_continuous(labels = scales::percent)+
+  scale_color_brewer(palette="Dark2")
+
+severity_barplot_posneg
+
+ggsave("Sex_barplot_posneg.png")
