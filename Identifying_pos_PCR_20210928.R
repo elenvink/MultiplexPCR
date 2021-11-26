@@ -127,11 +127,33 @@ Nov18am1 <- read_excel("~/Viral Coinfection/PCR Results/20211118allRUTs_data_am1
 
 Nov18am1$PCR_date <- 'Nov18am1'
 
+Nov18am2 <- read_excel("~/Viral Coinfection/PCR Results/20211118allRUTs_am2_data.xls") %>% 
+  select(2,3,4,7)
 
+Nov18am2$PCR_date <- 'Nov18am2'
+
+
+Nov18pm <- read_excel("~/Viral Coinfection/PCR Results/20211118allRUTs_pm_data.xls") %>% 
+  select(2,3,4,7)
+
+Nov18pm$PCR_date <- 'Nov18pm'
+
+Nov24am <- read_excel("~/Viral Coinfection/PCR Results/20211124allRUTs_am_data.xls") %>% 
+  select(2,3,4,7)
+
+Nov24am$PCR_date <- 'Nov24am'
+
+Nov24pm <- read_excel("~/Viral Coinfection/PCR Results/20211124all_ruts_pm_data.xls") %>% 
+  select(2,3,4,7)
+
+Nov24pm$PCR_date <- 'Nov24pm'
 
 #Combine datasheets
 
-PCR_run <- rbind(Sept7, Sept8, Sept9am, Sept9pm, Sept10am, Sept10pm, Sept14am, Sept14pm, Sept16, Sept17, Sept22am, Sept22pm, Sept27, Oct20 , Oct21 , Oct26, Oct27am, Oct27pm , Oct28, Oct29am, Oct29pm, Nov17, Nov18am1 )
+PCR_run <- rbind(Sept7, Sept8, Sept9am, Sept9pm, Sept10am, Sept10pm, Sept14am, 
+                 Sept14pm, Sept16, Sept17, Sept22am, Sept22pm, Sept27, Oct20 , 
+                 Oct21 , Oct26, Oct27am, Oct27pm , Oct28, Oct29am, Oct29pm, Nov17, 
+                 Nov18am1, Nov18am2, Nov18pm, Nov24am, NOv24pm )
                  
 names(PCR_run)[4] <- 'CT'
 
